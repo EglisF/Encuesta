@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Encuestas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --primary-light: #1e293b;
+            --accent: #f59e0b;
+            --accent-dark: #d97706;
+            --bg: #fafaf9;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --error: #ef4444;
+            --shadow: rgba(15, 23, 42, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            padding: 40px 30px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px var(--shadow);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.5; }
+        }
+
+        .header h1 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 3rem;
+            color: white;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0;
+        }
+
+        .nav-tab {
+            background: transparent;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            position: relative;
+            font-family: 'Work Sans', sans-serif;
+        }
+
+        .nav-tab:hover {
+            color: var(--primary);
+        }
+
+        .nav-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 35px;
+            box-shadow: 0 4px 20px var(--shadow);
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px var(--shadow);
+        }
+
+        .card-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 25px;
+            font-weight: 700;
+            border-left: 4px solid var(--accent);
+            padding-left: 20px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.95rem;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: 'Work Sans', sans-serif;
+            transition: all 0.3s ease;
+            background: var(--bg);
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+            background: white;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Work Sans', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        }
+
+        th {
+            padding: 18px;
+            text-align: left;
+            font-weight: 600;
+            color: white;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        tr:hover {
+            background: var(--bg);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            font-weight: 500;
+            animation: slideInDown 0.4s ease;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid var(--error);
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+
+        /* Vote Section */
+        .vote-option {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px;
+            background: var(--bg);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .vote-option:hover {
+            border-color: var(--accent);
+            background: white;
+            transform: translateX(5px);
+        }
+
+        .vote-option input[type="radio"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        .vote-option label {
+            margin: 0;
+            cursor: pointer;
+            flex: 1;
+            font-size: 1.05rem;
+        }
+
+        /* Results Chart */
+        .result-item {
+            margin-bottom: 25px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .result-bar {
+            height: 40px;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--accent-dark) 100%);
+            border-radius: 20px;
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .result-bar-container {
+            background: var(--bg);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid var(--border);
+        }
+
+        /* Email Link Section */
+        .email-link-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 2px solid #bae6fd;
+        }
+
+        .email-link {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 0.9rem;
+            border: 1px solid #bae6fd;
+            margin: 10px 0;
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 25px;
+            }
+
+            .nav-tab {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th, td {
+                padding: 12px;
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.5rem;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h2 {
+            font-family: 'Crimson Pro', serif;
+            color: var(--primary);
+            margin: 0;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-modal:hover {
+            background: var(--bg);
+            color: var(--primary);
+        }
+
+        .config-status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .config-status.configured {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .config-status.not-configured {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .btn-email {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-email:hover {
+            background: #2563eb;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .sending {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Sistema de Encuestas</h1>
+            <p>Plataforma completa para gestión y análisis de encuestas</p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="participants">👥 Participantes</button>
+            <button class="nav-tab" data-tab="positions">📋 Cargos/Preguntas</button>
+            <button class="nav-tab" data-tab="vote">🗳️ Votar</button>
+            <button class="nav-tab" data-tab="results">📊 Resultados</button>
+            <button class="nav-tab" onclick="openConfigModal()" style="margin-left: auto; background: var(--accent); color: white; border-radius: 10px;">
+                ⚙️ Configurar Email
+            </button>
+        </div>
+
+        <!-- Modal de Configuración EmailJS -->
+        <div id="config-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>⚙️ Configuración de EmailJS</h2>
+                    <button class="close-modal" onclick="closeConfigModal()">×</button>
+                </div>
+                
+                <div id="config-status-display"></div>
+                
+                <div class="alert alert-info" style="margin-bottom: 20px;">
+                    📧 Para enviar correos automáticamente, necesitas crear una cuenta gratuita en EmailJS
+                </div>
+                
+                <form id="emailjs-config-form">
+                    <div class="form-group">
+                        <label for="service-id">Service ID *</label>
+                        <input type="text" id="service-id" required placeholder="Ej: service_abc123">
+                    </div>
+                    <div class="form-group">
+                        <label for="template-id">Template ID *</label>
+                        <input type="text" id="template-id" required placeholder="Ej: template_xyz789">
+                    </div>
+                    <div class="form-group">
+                        <label for="public-key">Public Key *</label>
+                        <input type="text" id="public-key" required placeholder="Ej: user_aBcD123456">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        💾 Guardar Configuración
+                    </button>
+                </form>
+                
+                <div style="margin-top: 30px; padding: 20px; background: var(--bg); border-radius: 10px;">
+                    <h4 style="margin-bottom: 15px; color: var(--primary);">📝 Instrucciones:</h4>
+                    <ol style="margin-left: 20px; line-height: 2;">
+                        <li>Ve a <a href="https://www.emailjs.com/" target="_blank" style="color: var(--accent); font-weight: 600;">emailjs.com</a> y crea una cuenta gratuita</li>
+                        <li>Conecta tu servicio de email (Gmail, Outlook, etc.)</li>
+                        <li>Crea un template con estas variables:
+                            <ul style="margin-top: 10px; margin-left: 20px;">
+                                <li><code>{{to_email}}</code> - Email del participante</li>
+                                <li><code>{{to_name}}</code> - Nombre del participante</li>
+                                <li><code>{{vote_link}}</code> - Enlace para votar</li>
+                            </ul>
+                        </li>
+                        <li>Copia los IDs y pégalos arriba</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- PARTICIPANTES TAB -->
+            <div id="participants-tab" class="tab-pane">
+                <div class="card">
+                    <h2 class="card-title">Registro de Participantes</h2>
+                    <form id="participant-form">
+                        <div class="form-group">
+                            <label for="p-email">Correo Electrónico *</label>
+                            <input type="email" id="p-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="p-nombre">Nombre *</label>
+                            <input type="text" id="p-nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="p-apellido">Apellido *</label>
+                            <input type="text" id="p-apellido" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="p-campo1">Campo 1</label>
+                            <input type="text" id="p-campo1">
+                        </div>
+                        <div class="form-group">
+                            <label for="p-campo2">Campo 2</label>
+                            <input type="text" id="p-campo2">
+                        </div>
+                        <div class="form-group">
+                            <label for="p-campo3">Campo 3</label>
+                            <input type="text" id="p-campo3">
+                        </div>
+                        <button type="submit" class="btn btn-primary">✓ Registrar Participante</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="flex-between">
+                        <h2 class="card-title" style="margin: 0;">Lista de Participantes</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-email" onclick="sendAllEmails()">📧 Enviar a Todos</button>
+                            <button class="btn btn-secondary" onclick="generateAllLinks()">💾 Descargar Enlaces</button>
+                        </div>
+                    </div>
+                    <div id="participants-alert"></div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Correo</th>
+                                    <th>Nombre</th>
+                                    <th>Apellido</th>
+                                    <th>Campo 1</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="participants-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARGOS/PREGUNTAS TAB -->
+            <div id="positions-tab" class="tab-pane hidden">
+                <div class="card">
+                    <h2 class="card-title">Registro de Cargos/Preguntas</h2>
+                    <form id="position-form">
+                        <div class="form-group">
+                            <label for="position-name">Nombre del Cargo/Pregunta *</label>
+                            <input type="text" id="position-name" required placeholder="Ej: Presidente, ¿Cuál es tu color favorito?">
+                        </div>
+                        <button type="submit" class="btn btn-primary">✓ Crear Cargo/Pregunta</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Gestión de Aspirantes/Opciones</h2>
+                    <div id="positions-alert"></div>
+                    <div id="positions-management"></div>
+                </div>
+            </div>
+
+            <!-- VOTAR TAB -->
+            <div id="vote-tab" class="tab-pane hidden">
+                <div class="card">
+                    <h2 class="card-title">Registrar Voto</h2>
+                    <div id="vote-alert"></div>
+                    <form id="vote-form"></form>
+                </div>
+            </div>
+
+            <!-- RESULTADOS TAB -->
+            <div id="results-tab" class="tab-pane hidden">
+                <div class="card">
+                    <h2 class="card-title">Resultados de la Encuesta</h2>
+                    <div id="results-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // EmailJS Configuration
+        let emailConfig = JSON.parse(localStorage.getItem('emailConfig')) || null;
+        
+        // Initialize EmailJS if configured
+        if (emailConfig) {
+            emailjs.init(emailConfig.publicKey);
+        }
+        
+        // Data Storage
+        let participants = JSON.parse(localStorage.getItem('participants')) || [];
+        let positions = JSON.parse(localStorage.getItem('positions')) || [];
+        let votes = JSON.parse(localStorage.getItem('votes')) || [];
+
+        // Save data
+        function saveData() {
+            localStorage.setItem('participants', JSON.stringify(participants));
+            localStorage.setItem('positions', JSON.stringify(positions));
+            localStorage.setItem('votes', JSON.stringify(votes));
+        }
+
+        // EmailJS Configuration Functions
+        function openConfigModal() {
+            const modal = document.getElementById('config-modal');
+            modal.classList.add('show');
+            updateConfigStatus();
+            
+            if (emailConfig) {
+                document.getElementById('service-id').value = emailConfig.serviceId;
+                document.getElementById('template-id').value = emailConfig.templateId;
+                document.getElementById('public-key').value = emailConfig.publicKey;
+            }
+        }
+
+        function closeConfigModal() {
+            document.getElementById('config-modal').classList.remove('show');
+        }
+
+        function updateConfigStatus() {
+            const statusDiv = document.getElementById('config-status-display');
+            if (emailConfig) {
+                statusDiv.innerHTML = `
+                    <div class="config-status configured">
+                        ✓ EmailJS configurado correctamente
+                    </div>
+                `;
+            } else {
+                statusDiv.innerHTML = `
+                    <div class="config-status not-configured">
+                        ⚠️ EmailJS no configurado - Los correos no se pueden enviar
+                    </div>
+                `;
+            }
+        }
+
+        document.getElementById('emailjs-config-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            emailConfig = {
+                serviceId: document.getElementById('service-id').value.trim(),
+                templateId: document.getElementById('template-id').value.trim(),
+                publicKey: document.getElementById('public-key').value.trim()
+            };
+            
+            localStorage.setItem('emailConfig', JSON.stringify(emailConfig));
+            emailjs.init(emailConfig.publicKey);
+            
+            updateConfigStatus();
+            alert('✓ Configuración guardada exitosamente');
+            closeConfigModal();
+        });
+
+        // Click outside modal to close
+        document.getElementById('config-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'config-modal') {
+                closeConfigModal();
+            }
+        });
+
+        // Tab Navigation
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+                document.getElementById(tab.dataset.tab + '-tab').classList.remove('hidden');
+                
+                if (tab.dataset.tab === 'results') {
+                    renderResults();
+                }
+            });
+        });
+
+        // Show Alert
+        function showAlert(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => container.innerHTML = '', 5000);
+        }
+
+        // PARTICIPANTES
+        document.getElementById('participant-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('p-email').value.trim().toLowerCase();
+            
+            if (participants.some(p => p.email === email)) {
+                showAlert('participants-alert', '❌ Este correo ya está registrado', 'error');
+                return;
+            }
+            
+            const participant = {
+                email,
+                nombre: document.getElementById('p-nombre').value.trim(),
+                apellido: document.getElementById('p-apellido').value.trim(),
+                campo1: document.getElementById('p-campo1').value.trim(),
+                campo2: document.getElementById('p-campo2').value.trim(),
+                campo3: document.getElementById('p-campo3').value.trim(),
+                hasVoted: false
+            };
+            
+            participants.push(participant);
+            saveData();
+            renderParticipants();
+            e.target.reset();
+            showAlert('participants-alert', '✓ Participante registrado exitosamente', 'success');
+        });
+
+        function renderParticipants() {
+            const tbody = document.getElementById('participants-list');
+            if (participants.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><h3>No hay participantes registrados</h3><p>Comienza agregando participantes al sistema</p></td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = participants.map((p, index) => `
+                <tr>
+                    <td>${p.email}</td>
+                    <td>${p.nombre}</td>
+                    <td>${p.apellido}</td>
+                    <td>${p.campo1 || '-'}</td>
+                    <td>
+                        <span class="badge ${p.hasVoted ? 'badge-success' : 'badge-pending'}">
+                            ${p.hasVoted ? '✓ Votó' : '⏳ Pendiente'}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-email btn-small" onclick="sendEmail(${index})" id="send-btn-${index}">
+                                📧 Enviar
+                            </button>
+                            <button class="btn btn-danger btn-small" onclick="deleteParticipant(${index})">
+                                🗑️
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function deleteParticipant(index) {
+            if (confirm('¿Seguro que deseas eliminar este participante?')) {
+                participants.splice(index, 1);
+                saveData();
+                renderParticipants();
+                showAlert('participants-alert', '✓ Participante eliminado', 'success');
+            }
+        }
+
+        // Email Sending Functions
+        async function sendEmail(index) {
+            if (!emailConfig) {
+                showAlert('participants-alert', '⚠️ Debes configurar EmailJS primero. Haz clic en "⚙️ Configurar Email"', 'error');
+                return;
+            }
+
+            const participant = participants[index];
+            const baseUrl = window.location.href.split('?')[0];
+            const voteLink = `${baseUrl}?email=${encodeURIComponent(participant.email)}`;
+            
+            const btn = document.getElementById(`send-btn-${index}`);
+            btn.classList.add('sending');
+            btn.innerHTML = '⏳ Enviando...';
+
+            try {
+                await emailjs.send(
+                    emailConfig.serviceId,
+                    emailConfig.templateId,
+                    {
+                        to_email: participant.email,
+                        to_name: `${participant.nombre} ${participant.apellido}`,
+                        vote_link: voteLink
+                    }
+                );
+                
+                btn.innerHTML = '✓ Enviado';
+                btn.style.background = '#10b981';
+                showAlert('participants-alert', `✓ Email enviado a ${participant.email}`, 'success');
+                
+                setTimeout(() => {
+                    btn.classList.remove('sending');
+                    btn.innerHTML = '📧 Enviar';
+                    btn.style.background = '';
+                }, 3000);
+            } catch (error) {
+                console.error('Error:', error);
+                btn.classList.remove('sending');
+                btn.innerHTML = '❌ Error';
+                btn.style.background = '#ef4444';
+                showAlert('participants-alert', '❌ Error al enviar email. Verifica tu configuración.', 'error');
+                
+                setTimeout(() => {
+                    btn.innerHTML = '📧 Enviar';
+                    btn.style.background = '';
+                }, 3000);
+            }
+        }
+
+        async function sendAllEmails() {
+            if (!emailConfig) {
+                showAlert('participants-alert', '⚠️ Debes configurar EmailJS primero. Haz clic en "⚙️ Configurar Email"', 'error');
+                return;
+            }
+
+            if (participants.length === 0) {
+                showAlert('participants-alert', '❌ No hay participantes para enviar emails', 'error');
+                return;
+            }
+
+            if (!confirm(`¿Deseas enviar emails a todos los ${participants.length} participantes?`)) {
+                return;
+            }
+
+            showAlert('participants-alert', `⏳ Enviando emails a ${participants.length} participantes...`, 'info');
+
+            let sent = 0;
+            let failed = 0;
+
+            for (let i = 0; i < participants.length; i++) {
+                try {
+                    const participant = participants[i];
+                    const baseUrl = window.location.href.split('?')[0];
+                    const voteLink = `${baseUrl}?email=${encodeURIComponent(participant.email)}`;
+
+                    await emailjs.send(
+                        emailConfig.serviceId,
+                        emailConfig.templateId,
+                        {
+                            to_email: participant.email,
+                            to_name: `${participant.nombre} ${participant.apellido}`,
+                            vote_link: voteLink
+                        }
+                    );
+                    
+                    sent++;
+                    
+                    // Small delay between emails to avoid rate limits
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                } catch (error) {
+                    console.error(`Error sending to ${participants[i].email}:`, error);
+                    failed++;
+                }
+            }
+
+            if (failed === 0) {
+                showAlert('participants-alert', `✓ Todos los emails fueron enviados exitosamente (${sent}/${participants.length})`, 'success');
+            } else {
+                showAlert('participants-alert', `⚠️ Enviados: ${sent}, Fallidos: ${failed}`, 'error');
+            }
+        }
+
+        function generateAllLinks() {
+            if (participants.length === 0) {
+                showAlert('participants-alert', '❌ No hay participantes registrados', 'error');
+                return;
+            }
+            
+            const baseUrl = window.location.href.split('?')[0];
+            let linksText = '📧 ENLACES DE VOTACIÓN\n\n';
+            
+            participants.forEach(p => {
+                const link = `${baseUrl}?email=${encodeURIComponent(p.email)}`;
+                linksText += `${p.nombre} ${p.apellido} (${p.email}):\n${link}\n\n`;
+            });
+            
+            const blob = new Blob([linksText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'enlaces-votacion.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showAlert('participants-alert', '✓ Archivo de enlaces descargado', 'success');
+        }
+
+        // CARGOS/POSICIONES
+        document.getElementById('position-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('position-name').value.trim();
+            
+            if (positions.some(p => p.name === name)) {
+                showAlert('positions-alert', '❌ Este cargo/pregunta ya existe', 'error');
+                return;
+            }
+            
+            positions.push({
+                name,
+                candidates: []
+            });
+            
+            saveData();
+            renderPositions();
+            e.target.reset();
+            showAlert('positions-alert', '✓ Cargo/Pregunta creado exitosamente', 'success');
+        });
+
+        function renderPositions() {
+            const container = document.getElementById('positions-management');
+            
+            if (positions.length === 0) {
+                container.innerHTML = '<div class="empty-state"><h3>No hay cargos/preguntas registrados</h3><p>Crea un cargo o pregunta para comenzar</p></div>';
+                return;
+            }
+            
+            container.innerHTML = positions.map((position, posIndex) => `
+                <div class="card" style="margin-bottom: 20px; background: var(--bg);">
+                    <div class="flex-between">
+                        <h3 style="font-family: 'Crimson Pro', serif; color: var(--primary); margin: 0;">
+                            ${position.name}
+                        </h3>
+                        <button class="btn btn-danger" onclick="deletePosition(${posIndex})" style="padding: 8px 16px; font-size: 0.9rem;">
+                            🗑️ Eliminar
+                        </button>
+                    </div>
+                    
+                    <form onsubmit="addCandidate(event, ${posIndex})" style="margin: 20px 0;">
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="candidate-${posIndex}" placeholder="Nombre del aspirante/opción" required style="flex: 1;">
+                            <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">
+                                ✓ Agregar
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div>
+                        ${position.candidates.length === 0 ? 
+                            '<p style="color: var(--text-muted); font-style: italic;">Sin opciones agregadas</p>' :
+                            position.candidates.map((candidate, candIndex) => `
+                                <div class="vote-option" style="justify-content: space-between;">
+                                    <span>${candidate}</span>
+                                    <button class="btn btn-danger" onclick="deleteCandidate(${posIndex}, ${candIndex})" style="padding: 6px 12px; font-size: 0.85rem;">
+                                        🗑️
+                                    </button>
+                                </div>
+                            `).join('')
+                        }
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addCandidate(event, posIndex) {
+            event.preventDefault();
+            const input = document.getElementById(`candidate-${posIndex}`);
+            const candidateName = input.value.trim();
+            
+            if (positions[posIndex].candidates.includes(candidateName)) {
+                showAlert('positions-alert', '❌ Esta opción ya existe', 'error');
+                return;
+            }
+            
+            positions[posIndex].candidates.push(candidateName);
+            saveData();
+            renderPositions();
+            showAlert('positions-alert', '✓ Opción agregada exitosamente', 'success');
+        }
+
+        function deleteCandidate(posIndex, candIndex) {
+            if (confirm('¿Seguro que deseas eliminar esta opción?')) {
+                positions[posIndex].candidates.splice(candIndex, 1);
+                saveData();
+                renderPositions();
+                showAlert('positions-alert', '✓ Opción eliminada', 'success');
+            }
+        }
+
+        function deletePosition(index) {
+            if (confirm('¿Seguro que deseas eliminar este cargo/pregunta?')) {
+                positions.splice(index, 1);
+                saveData();
+                renderPositions();
+                showAlert('positions-alert', '✓ Cargo/Pregunta eliminado', 'success');
+            }
+        }
+
+        // VOTACIÓN
+        function renderVoteForm() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const email = urlParams.get('email');
+            const alertDiv = document.getElementById('vote-alert');
+            const form = document.getElementById('vote-form');
+            
+            if (!email) {
+                alertDiv.innerHTML = '<div class="alert alert-info">📧 Para votar, necesitas acceder mediante el enlace enviado a tu correo electrónico.</div>';
+                form.innerHTML = '';
+                return;
+            }
+            
+            const participant = participants.find(p => p.email === email.toLowerCase());
+            
+            if (!participant) {
+                alertDiv.innerHTML = '<div class="alert alert-error">❌ Este correo no está registrado en el sistema.</div>';
+                form.innerHTML = '';
+                return;
+            }
+            
+            if (participant.hasVoted) {
+                alertDiv.innerHTML = '<div class="alert alert-error">❌ Ya has votado. No puedes votar más de una vez.</div>';
+                form.innerHTML = '';
+                return;
+            }
+            
+            if (positions.length === 0) {
+                alertDiv.innerHTML = '<div class="alert alert-info">📋 Aún no hay cargos/preguntas disponibles para votar.</div>';
+                form.innerHTML = '';
+                return;
+            }
+            
+            alertDiv.innerHTML = `<div class="alert alert-success">✓ Bienvenido/a ${participant.nombre} ${participant.apellido}</div>`;
+            
+            form.innerHTML = positions.map((position, posIndex) => `
+                <div style="margin-bottom: 35px;">
+                    <h3 style="font-family: 'Crimson Pro', serif; color: var(--primary); margin-bottom: 20px; font-size: 1.5rem;">
+                        ${position.name}
+                    </h3>
+                    ${position.candidates.map((candidate, candIndex) => `
+                        <div class="vote-option">
+                            <input type="radio" name="position-${posIndex}" value="${candidate}" id="vote-${posIndex}-${candIndex}" required>
+                            <label for="vote-${posIndex}-${candIndex}">${candidate}</label>
+                        </div>
+                    `).join('')}
+                    <div class="vote-option">
+                        <input type="radio" name="position-${posIndex}" value="No sé" id="vote-${posIndex}-ns">
+                        <label for="vote-${posIndex}-ns">🤷 No sé</label>
+                    </div>
+                    <div class="vote-option">
+                        <input type="radio" name="position-${posIndex}" value="Ninguno" id="vote-${posIndex}-ninguno">
+                        <label for="vote-${posIndex}-ninguno">⛔ Ninguno</label>
+                    </div>
+                </div>
+            `).join('') + `
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 16px; font-size: 1.1rem;">
+                    🗳️ Enviar Voto
+                </button>
+            `;
+            
+            form.onsubmit = (e) => submitVote(e, email);
+        }
+
+        function submitVote(event, email) {
+            event.preventDefault();
+            
+            const voteData = {
+                email,
+                votes: {},
+                timestamp: new Date().toISOString()
+            };
+            
+            positions.forEach((position, index) => {
+                const selected = document.querySelector(`input[name="position-${index}"]:checked`);
+                if (selected) {
+                    voteData.votes[position.name] = selected.value;
+                }
+            });
+            
+            votes.push(voteData);
+            
+            const participant = participants.find(p => p.email === email.toLowerCase());
+            participant.hasVoted = true;
+            
+            saveData();
+            
+            document.getElementById('vote-alert').innerHTML = '<div class="alert alert-success">✓ ¡Gracias por votar! Tu voto ha sido registrado exitosamente.</div>';
+            document.getElementById('vote-form').innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px;">Tu participación ha sido registrada.</p>';
+        }
+
+        // RESULTADOS
+        function renderResults() {
+            const container = document.getElementById('results-content');
+            
+            if (positions.length === 0) {
+                container.innerHTML = '<div class="empty-state"><h3>No hay cargos/preguntas configurados</h3></div>';
+                return;
+            }
+            
+            if (votes.length === 0) {
+                container.innerHTML = '<div class="empty-state"><h3>Aún no hay votos registrados</h3><p>Espera a que los participantes comiencen a votar</p></div>';
+                return;
+            }
+            
+            let html = `
+                <div class="alert alert-info" style="margin-bottom: 30px;">
+                    📊 Total de votos recibidos: <strong>${votes.length}</strong> de <strong>${participants.length}</strong> participantes
+                    (${((votes.length / participants.length) * 100).toFixed(1)}% de participación)
+                </div>
+            `;
+            
+            positions.forEach(position => {
+                const results = {};
+                let totalVotes = 0;
+                
+                position.candidates.forEach(candidate => results[candidate] = 0);
+                results['No sé'] = 0;
+                results['Ninguno'] = 0;
+                
+                votes.forEach(vote => {
+                    if (vote.votes[position.name]) {
+                        results[vote.votes[position.name]]++;
+                        totalVotes++;
+                    }
+                });
+                
+                html += `
+                    <div style="margin-bottom: 50px;">
+                        <h3 style="font-family: 'Crimson Pro', serif; color: var(--primary); margin-bottom: 25px; font-size: 1.8rem;">
+                            ${position.name}
+                        </h3>
+                        <p style="color: var(--text-muted); margin-bottom: 20px;">Total de votos: ${totalVotes}</p>
+                `;
+                
+                const sortedResults = Object.entries(results).sort((a, b) => b[1] - a[1]);
+                
+                sortedResults.forEach(([option, count]) => {
+                    const percentage = totalVotes > 0 ? (count / totalVotes * 100) : 0;
+                    html += `
+                        <div class="result-item">
+                            <div class="result-header">
+                                <span style="font-size: 1.05rem;">${option}</span>
+                                <span style="color: var(--accent);">${count} votos (${percentage.toFixed(1)}%)</span>
+                            </div>
+                            <div class="result-bar-container">
+                                <div class="result-bar" style="width: ${percentage}%;">
+                                    ${percentage > 10 ? percentage.toFixed(1) + '%' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Initialize
+        renderParticipants();
+        renderPositions();
+        renderVoteForm();
+        
+        // Check URL for vote link on load
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('email')) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('[data-tab="vote"]').classList.add('active');
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+            document.getElementById('vote-tab').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
